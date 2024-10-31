@@ -1,0 +1,49 @@
+/** Development apiUrl */
+// var apiUrl = "http://api.diimeh.host.servermatter.com/public/";
+
+/** Production apiUrl */
+var apiUrl = "https://api.diimeh.com/";
+
+
+/** Site navigation */
+var routeButtons = [
+	"home#top",
+	"home#top#mobile",
+	"home#section2",
+	"home#section2#mobile",
+	"home#section7",
+	"home#section7#mobile",
+	"home#section5",
+	"productos",
+	"productos#mobile"
+];
+function initializeNavigation() {
+
+	routeButtons.forEach(function(button) {
+		var page = button.split("#")[0];
+		var section = button.split("#")[1];
+		var isMobile = Boolean(button.split("#")[2] || false);
+		$("[app-navigate-to=" + button + "]").click(function() {
+			if (page == "home") {
+				page = "index";
+			}
+
+			if ("/" + page + ".html" != window.location.pathname) {
+				window.location.href = "/" + page + ".html" + ((section && section.length > 0) ? "#" + section : "");
+			}
+
+			if (section != undefined) {
+				var offset = isMobile ? 150 : 0;
+				if (section == "top") {
+					window.scroll({ top: 0, left: 0, behavior: 'smooth' });
+				} else {
+					$('html, body').animate({
+						scrollTop: $('#' + section).offset().top - offset
+					})
+				}
+			}
+		});
+	});
+}
+
+initializeNavigation();

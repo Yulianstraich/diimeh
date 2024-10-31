@@ -1,0 +1,219 @@
+// Smooth scroll
+// Captures click events of all <a> elements with href starting with #
+$('a[href^="#"], button.button_1, li.menu-option').on('click', function () {
+	// Click events are captured before hashchanges. Timeout
+	// causes offsetAnchor to be called after the page jump.
+	var $anchor = $(this);
+	var $section = ($anchor.attr('app-navigate-to')).split('#')[1];
+	if ($section == 'top') {
+		$section = 'section1';
+	}
+	$('html, body').stop(true, false).animate({
+		scrollTop: $('#' + $section).offset().top - 148
+	}, 1500);
+	return false;
+});
+// end: Smooth scroll
+
+// Slick carousel
+$(document).ready(function () {
+	$('.carousel-container').slick({
+		arrows: true,
+		dots: false,
+		autoplay: true,
+		centerMode: true,
+		centerPadding: '275px',
+		slidesToShow: 1,
+		responsive: [{
+				breakpoint: 1024,
+				settings: {
+					autoplay: true,
+					centerMode: true,
+					centerPadding: '100px',
+					slidesToShow: 1,
+				}
+			},
+			{
+				breakpoint: 640,
+				settings: {
+					autoplay: true,
+					centerMode: false,
+					// centerPadding: '30px',
+					slidesToShow: 1,
+				}
+			}
+		]
+	});
+});
+// end: Slick carousel
+
+$(document).ready(function () {
+	$.ajax({
+		url: apiUrl + "web/families",
+		method: "GET",
+		success: function (data) {
+			populateProducts(data.families);
+		}
+	});
+
+	function populateProducts(families) {
+		var $mainProductsContainer = $('#main-products-container');
+		var $secondaryProductsContainer = $("#more-products");
+		var $template;
+		$.get('template/product.html', function (data) {
+			$template = $(data);
+			families.forEach(function (product, index) {
+				var $instance = $template.clone();
+				var $infoContainer = $instance.find('.product-info');
+				$instance.find('.product-title').text(product.name);
+				// $instance.on('click', function() {
+				// 	location.href = "productos.html#" + product.id;
+				// });
+				
+				var $instanceTitle = $instance.find('.product-title');
+				$instanceTitle.on('click', function() {
+					location.href = "productos.html#" + product.id;
+				});
+
+				if (!Array.isArray(product.description)) {
+					product.description = product.description.split('\n');
+				}
+				if (Array.isArray(product.description) && product.description.length > 0) {
+					product.description.forEach(function (element) {
+						var $element = $('<li></li>');
+						$element.text(element);
+						$infoContainer.append($element);
+						$element.on('click', function() {
+							// location.href = 'productos.html?search=' + element;
+							location.href = 'productos.html?search=' + element + '#' + product.id;
+						});
+					})
+				}
+
+				$instance.find('.product-image').attr("src", apiUrl + product.icon_path);
+				if (index < 6) {
+					$mainProductsContainer.append($instance);
+				} else {
+					$secondaryProductsContainer.append($instance);
+				}
+			});
+		});
+	}
+});
+
+
+// Submit form
+$(function () {
+
+	$('#submit').click(function () {
+
+		$('#error_msg').html("");
+		$('#success_msg').html("");
+
+		var name = $('#name').val();
+		var phone = $('#phone').val();
+		var email = $('#email').val();
+		var message = $('#message').val();
+		var country = $('#country').val();
+
+		borderBlue('#name');
+		borderBlue('#email');
+		borderBlue('#message');
+
+		if (name == '' || email == '' || message == '') {
+			$('#error_msg').html("Por favor llena los campos requeridos");
+		} else {
+			$.ajax({
+				url: "contact.php",
+				method: "POST",
+				data: {
+					name: name,
+					email: email,
+					message: message,
+					phone: phone,
+					country: country
+				},
+				success: function (data) {
+					if (data == 'success') {
+						animate($('#contact-us-form'), 'fadeOut');
+						$('#success_msg').html("¡Muchas gracias por contactarnos!");
+						setTimeout(function () {
+							$('#success').css('display', 'block');
+							animate($('#success'), 'fadeIn');
+							$('#section7').css('max-height', '480px');
+						}, 500);
+					}
+				},
+				error: function (data) {
+					console.log("error");
+				}
+			});
+
+
+		}
+
+		return false;
+	});
+
+	function borderBlue(element) {
+
+		if ($(element).val() == '') {
+			$(element).css('border', '2px solid #59d2ea');
+		} else {
+			$(element).css('border', '2px solid #f4f4f4');
+		}
+
+	}
+
+	function animate(element, animation) {
+		$(element).addClass('animated ' + animation);
+		var wait = setTimeout(function () {
+			$(element).removeClass('animated' + animation);
+		}, 1000);
+	}
+});
+// end: Submit form
+
+// Show more products
+$("#show-more-btn").on("click", function () {
+
+	$("#show-more-container").removeClass("show-content");
+	$("#show-more-container").addClass("hide-content");
+
+	$("#more-products").removeClass("hide-content");
+	$("#more-products").addClass('animated ' + 'fadeIn');
+	var wait = setTimeout(function () {
+		$("#more-products").removeClass('animated');
+		$("#more-products").removeClass('fadeIn');
+	}, 1000);
+	$("#more-products").addClass("show-content");
+
+	$("#show-less-container").removeClass("hide-content");
+	$("#show-less-container").addClass("show-content");
+
+});
+// end: Show more products
+
+// Show less products
+$("#show-less-btn").on("click", function () {
+
+	$("#show-less-container").removeClass("show-content");
+	$("#show-less-container").addClass("hide-content");
+
+	$("#more-products").addClass('animated ' + 'fadeOut');
+	var wait = setTimeout(function () {
+		$("#more-products").removeClass('animated');
+		$("#more-products").removeClass('fadeOut');
+	}, 1000);
+
+
+	$("#more-products").removeClass("show-content");
+	$("#more-products").addClass("hide-content");
+
+
+	$("#show-more-container").removeClass("hide-content");
+	$("#show-more-container").addClass("show-content");
+
+
+});
+// end: Show less products
